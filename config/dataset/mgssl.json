@@ -1,0 +1,14 @@
+{
+  "emb_dim": 64,
+
+  "gnn_type": "gin",
+  "num_layer": 4,
+  "decay": 0,
+  "dropout_ratio": 0.1,
+  "graph_pooling": "mean",
+  "JK": "last",
+  "hidden_size": 128,
+  "latent_size": 64,
+
+  "order": "bfs"
+}

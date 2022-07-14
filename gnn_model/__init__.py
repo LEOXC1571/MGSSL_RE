@@ -4,4 +4,7 @@
 # @Author: Leo Xu
 # @Email: leoxc1571@163.com
 
-from .GNN import GNN
+from .GAT import GATConv
+from .GCN import GCNConv
+from .GIN import GINConv
+from .GraphSAGE import GraphSAGEConv

@@ -4,6 +4,6 @@
 # @Author: Leo Xu
 # @Email: leoxc1571@163.com
 
-from datautils import MoleculeDataset
+from datautils import MoleculeDataset, moltree_to_graph_data
 from .mol_tree import Vocab
 from .motif_generation import Motif_Generation

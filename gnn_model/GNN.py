@@ -6,13 +6,20 @@
 
 
 import torch
+import torch.nn as nn
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree, softmax
 from torch_geometric.nn import global_add_pool, global_mean_pool, global_max_pool, GlobalAttention, Set2Set
 import torch.nn.functional as F
 from torch_scatter import scatter_add
 from torch_geometric.nn.inits import glorot, zeros
+from gnn_model import GCNConv, GINConv, GATConv, GraphSAGEConv
 
+num_atom_type = 120
+num_chirality_tag = 3
+
+num_bond_type = 6
+num_bond_direction = 3
 
 class GNN(torch.nn.Module):
     """
@@ -100,3 +107,68 @@ class GNN(torch.nn.Module):
             node_representation = torch.sum(torch.cat(h_list, dim=0), dim=0)[0]
 
         return node_representation
+
+
+class GNN_graphpred(nn.Module):
+    def __init__(self, num_layer, emb_dim, num_tasks, JK = "last", drop_ratio = 0, graph_pooling = "mean", gnn_type = "gin"):
+        super(GNN_graphpred, self).__init__()
+        self.num_layer = num_layer
+        self.drop_ratio = drop_ratio
+        self.JK = JK
+        self.emb_dim = emb_dim
+        self.num_tasks = num_tasks
+
+        if self.num_layer < 2:
+            raise ValueError("Number of GNN layers must be greater than 1.")
+
+        self.gnn = GNN(num_layer, emb_dim, JK, drop_ratio, gnn_type=gnn_type)
+
+        # Different kind of graph pooling
+        if graph_pooling == "sum":
+            self.pool = global_add_pool
+        elif graph_pooling == "mean":
+            self.pool = global_mean_pool
+        elif graph_pooling == "max":
+            self.pool = global_max_pool
+        elif graph_pooling == "attention":
+            if self.JK == "concat":
+                self.pool = GlobalAttention(gate_nn=torch.nn.Linear((self.num_layer + 1) * emb_dim, 1))
+            else:
+                self.pool = GlobalAttention(gate_nn=torch.nn.Linear(emb_dim, 1))
+        elif graph_pooling[:-1] == "set2set":
+            set2set_iter = int(graph_pooling[-1])
+            if self.JK == "concat":
+                self.pool = Set2Set((self.num_layer + 1) * emb_dim, set2set_iter)
+            else:
+                self.pool = Set2Set(emb_dim, set2set_iter)
+        else:
+            raise ValueError("Invalid graph pooling type.")
+
+        # For graph-level binary classification
+        if graph_pooling[:-1] == "set2set":
+            self.mult = 2
+        else:
+            self.mult = 1
+
+        if self.JK == "concat":
+            self.graph_pred_linear = torch.nn.Linear(self.mult * (self.num_layer + 1) * self.emb_dim,
+                                                     self.num_tasks)
+        else:
+            self.graph_pred_linear = torch.nn.Linear(self.mult * self.emb_dim, self.num_tasks)
+
+    def from_pretrained(self, model_file):
+        #self.gnn = GNN(self.num_layer, self.emb_dim, JK = self.JK, drop_ratio = self.drop_ratio)
+        self.gnn.load_state_dict(torch.load(model_file))
+
+    def forward(self, *argv):
+        if len(argv) == 4:
+            x, edge_index, edge_attr, batch = argv[0], argv[1], argv[2], argv[3]
+        elif len(argv) == 1:
+            data = argv[0]
+            x, edge_index, edge_attr, batch = data.x, data.edge_index, data.edge_attr, data.batch
+        else:
+            raise ValueError("unmatched number of arguments.")
+
+        node_representation = self.gnn(x, edge_index, edge_attr)
+
+        return self.graph_pred_linear(self.pool(node_representation, batch))
