@@ -72,7 +72,7 @@ def train(args, model_list, loader, optimizer_list, device):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--device', type=int, default=7)
+    parser.add_argument('--device', type=int, default=6)
     parser.add_argument('--model', type=str, default='mgssl')
     parser.add_argument('--dataset', type=str, default='zinc')
     parser.add_argument('--gnn', type=str, default='gin')
@@ -136,7 +136,7 @@ def main():
 
     optimizer_list = [optimizer_model, optimizer_motif]
 
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(1, args.epoch + 1):
         print("====epoch " + str(epoch))
 
         train(args, model_list, loader, optimizer_list, device)

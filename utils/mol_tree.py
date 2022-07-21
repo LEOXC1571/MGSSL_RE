@@ -2,7 +2,8 @@ import rdkit
 import rdkit.Chem as Chem
 import numpy as np
 import copy
-from chemutils import get_clique_mol, tree_decomp, brics_decomp, get_mol, get_smiles, set_atommap, enum_assemble, decode_stereo
+from .chemutils import get_mol, get_smiles, get_clique_mol, enum_assemble, brics_decomp, tree_decomp, set_atommap
+
 
 def get_slots(smiles):
     mol = Chem.MolFromSmiles(smiles)
@@ -101,7 +102,7 @@ class MolTree(object):
             cliques, edges = tree_decomp(self.mol)
         self.nodes = []
         root = 0
-        for i,c in enumerate(cliques):
+        for i, c in enumerate(cliques):
             cmol = get_clique_mol(self.mol, c)
             node = MolTreeNode(get_smiles(cmol), c)
             self.nodes.append(node)

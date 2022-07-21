@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset
-from mol_tree import MolTree
+from utils import *
+from .mol_tree import MolTree
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import Descriptors

@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from mol_tree import Vocab, MolTree, MolTreeNode
-from nnutils import create_var, GRU
-from chemutils import enum_assemble
+from .mol_tree import MolTreeNode
+from .nnutils import create_var, GRU
+from .chemutils import enum_assemble
 import copy
 
 MAX_NB = 8

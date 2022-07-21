@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-from mol_tree import Vocab, MolTree
-from nnutils import create_var
-from dfs import Motif_Generation_dfs
-from bfs import Motif_Generation_bfs
-from chemutils import enum_assemble, set_atommap, copy_edit_mol, attach_mols, atom_equal, decode_stereo
+from utils import *
+from .dfs import Motif_Generation_dfs
+from .bfs import Motif_Generation_bfs
+from .chemutils import enum_assemble, set_atommap, copy_edit_mol, attach_mols, atom_equal, decode_stereo
 import rdkit
 import rdkit.Chem as Chem
 from rdkit import DataStructs
